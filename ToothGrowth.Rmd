@@ -1,0 +1,200 @@
+---
+title: "Effect of Vitamin C Delivery Methods and Dosage on Tooth Growth in Guinea Pigs"
+author: "Charin Polpanumas"
+date: "February 5, 2559 BE"
+output:
+  pdf_document:
+    toc: no
+---
+# Overview
+The [ToothGrowth](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/ToothGrowth.html) dataset investigates the effect of vitamin C on tooth growth in 60 guinea pigs. It consists of response (tooth length), delivery methods (supp) and dosage of vitamin C (dose).
+```{r, echo=FALSE}
+data("ToothGrowth")
+tooth <- ToothGrowth
+```
+# Exploratory Data Analysis
+## Effects of Delivery Method and Dosage on Tooth Growth
+Both delivery methods seem to have similar effect on tooth growth. OJ has higher mean whereas VC has higher variability. Dosage seems to have a positive relationship with tooth length. OJ seems to have better effect when dose is 0.5 and 1.0 whereas both seems to be about as effective at 2.0 dose.
+```{r echo=FALSE, results='hide',message=FALSE}
+require(ggplot2)
+require(gridExtra)
+```
+```{r, echo=FALSE}
+require(ggplot2)
+require(gridExtra)
+#By delivery methods
+g1<-ggplot(aes(x = supp, y = len), data = ToothGrowth)  +
+       geom_boxplot(aes(fill = supp))  +
+       labs(title = "Tooth Growth by Delivery Method") +
+       labs(x = "Delivery method") + labs(y="Tooth Length")
+
+#By deliver methods and dosage
+g2<-ggplot(aes(x = supp, y = len), data = ToothGrowth)  +
+       geom_boxplot(aes(fill = supp)) + facet_wrap(~ dose) +
+       labs(title = "Tooth Growth by Delivery Method and Dosage") +
+       labs(x = "Delivery method") + labs(y="Tooth Length")
+
+#Plot both
+grid.arrange(g1,g2,ncol=1)
+```
+
+## Variable Transformation
+Tooth length (len) is a numerical data where as delivery methos (supp) and dosage of vitamin C (dose) are categorical variables. Dosage consists of only 0.5, 1.0, 2.0 so it is more suitably treated as categorical variable.
+```{r, echo=FALSE}
+summary(tooth)
+```
+# Hypothesis Tests and Confidence Intervals
+## Effects by Delivery Methods
+We perfrom two-tailed unpaired t-test with unequal variances to find out if different delivery methods have different effects on tooth length. p-value:
+```{r, echo=FALSE}
+t1<-t.test(data=tooth,len~supp,paired=FALSE,var.equal=FALSE)
+t1$p.value
+```
+Confidence interval at 95%:
+```{r, echo=FALSE}
+t1$conf.int[1:2]
+```
+## Effects by Dosage
+We perfrom one-tailed unpaired t-test with equal variances to find out if different dosage have different effects on tooth length. 
+
+###  Dose: 0.5 has less effect than 1.0 
+p-value:
+```{r, echo=FALSE}
+t2<-t.test(data=tooth[tooth$dose==0.5|tooth$dose==1.0,],len~dose,paired=FALSE,
+           var.equal=FALSE,alternative='less')
+t2$p.value
+```
+Confidence interval at 95%:
+```{r, echo=FALSE}
+t2$conf.int[1:2]
+```
+
+###  Dose: 1.0 has less effect than 2.0
+
+```{r, echo=FALSE}
+t3<-t.test(data=tooth[tooth$dose==1.0|tooth$dose==2.0,],len~dose,paired=FALSE,
+           var.equal=FALSE,alternative='less')
+t3$p.value
+```
+Confidence interval at 95%:
+```{r, echo=FALSE}
+t3$conf.int[1:2]
+```
+
+## Effects by Dosage Controlled by Delivery Methods
+
+We perfrom two-tailed unpaired t-test with equal variances to find out if different dosage (0.5, 1.0 and 2.0) have different effects on tooth length when controlling by delivery methods.
+
+### Difference between 0.5 Dosage of OJ and AC
+```{r, echo=FALSE}
+t4<-t.test(data=tooth[tooth$dose==0.5&(tooth$supp=='OJ'|tooth$supp=='VC'),],
+           len~supp,paired=FALSE,var.equal=FALSE)
+t4$p.value
+```
+Confidence interval at 95%:
+```{r, echo=FALSE}
+t4$conf.int[1:2]
+```
+### Difference between 1.0 Dosage of OJ and AC
+```{r, echo=FALSE}
+t5<-t.test(data=tooth[tooth$dose==1.0&(tooth$supp=='OJ'|tooth$supp=='VC'),],
+           len~supp,paired=FALSE,var.equal=FALSE)
+t5$p.value
+```
+Confidence interval at 95%:
+```{r, echo=FALSE}
+t5$conf.int[1:2]
+```
+### Difference between 2.0 Dosage of OJ and AC
+```{r, echo=FALSE}
+t6<-t.test(data=tooth[tooth$dose==2.0&(tooth$supp=='OJ'|tooth$supp=='VC'),],
+           len~supp,paired=FALSE,var.equal=FALSE)
+t6$p.value
+```
+Confidence interval at 95%:
+```{r, echo=FALSE}
+t6$conf.int[1:2]
+```
+
+# Conclusion
+
+From testing the hypotheses we can conclude that:
+
+* Delivery methods do not have differing effects on tooth growth.
+* Dosage positively affects tooth growth.
+* OJ and VC have statistically different effects at 0.5 and 1.0 dose (most likely OJ is more effective); the difference is not statistically significant at 2.0 dose.
+
+The underlying assumptions for these conclusions are:
+
+* The guinea pigs are randomized to each delivery method and dosage, thus the effect of confounders are minimized.
+* The 60 guinea pigs are representative of the guinea pig population, in order for the our sample results to be generalized.
+* Respective assumptions for hypothesis tests already mentioned in the section above.
+
+#Appendix
+All codes used to create the report.
+Download data and get summary.
+```{r, eval=FALSE}
+data("ToothGrowth")
+tooth <- ToothGrowth
+summary(tooth)
+```
+Plot exploratory data analysis.
+```{r eval=FALSE}
+require(ggplot2)
+require(gridExtra)
+#By delivery methods
+g1<-ggplot(aes(x = supp, y = len), data = ToothGrowth)  +
+       geom_boxplot(aes(fill = supp))  +
+       labs(title = "Tooth Growth by Delivery Method") +
+       labs(x = "Delivery method") + labs(y="Tooth Length")
+
+#By deliver methods and dosage
+g2<-ggplot(aes(x = supp, y = len), data = ToothGrowth)  +
+       geom_boxplot(aes(fill = supp)) + facet_wrap(~ dose) +
+       labs(title = "Tooth Growth by Delivery Method and Dosage") +
+       labs(x = "Delivery method") + labs(y="Tooth Length")
+
+#Plot both
+grid.arrange(g1,g2,ncol=1)
+```
+Hypothesis Test 1
+```{r, eval=FALSE}
+t1<-t.test(data=tooth,len~supp,paired=FALSE,var.equal=FALSE)
+t1$p.value
+t1$conf.int[1:2]
+```
+Hypothesis Test 2
+```{r, eval=FALSE}
+t2<-t.test(data=tooth[tooth$dose==0.5|tooth$dose==1.0,],len~dose,paired=FALSE,
+           var.equal=FALSE,alternative='less')
+t2$p.value
+t2$conf.int[1:2]
+```
+Hypothesis Test 3
+```{r, eval=FALSE}
+t3<-t.test(data=tooth[tooth$dose==1.0|tooth$dose==2.0,],len~dose,paired=FALSE,
+           var.equal=FALSE,alternative='less')
+t3$p.value
+t3$conf.int[1:2]
+```
+Hypothesis Test 4
+```{r, eval=FALSE}
+t4<-t.test(data=tooth[tooth$dose==0.5&(tooth$supp=='OJ'|tooth$supp=='VC'),],
+           len~supp,paired=FALSE,var.equal=FALSE)
+t4$p.value
+t4$conf.int[1:2]
+```
+Hypothesis Test 5
+```{r, eval=FALSE}
+t5<-t.test(data=tooth[tooth$dose==1.0&(tooth$supp=='OJ'|tooth$supp=='VC'),],
+           len~supp,paired=FALSE,var.equal=FALSE)
+t5$p.value
+t5$conf.int[1:2]
+```
+Hypothesis Test 6
+```{r, eval=FALSE}
+t6<-t.test(data=tooth[tooth$dose==2.0&(tooth$supp=='OJ'|tooth$supp=='VC'),],
+           len~supp,paired=FALSE,var.equal=FALSE)
+t6$p.value
+t6$conf.int[1:2]
+```
